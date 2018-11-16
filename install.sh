@@ -25,4 +25,4 @@ echo. ____________________________________________
 echo finished installing
 echo ____________________________________________
 echo to start enter command "siphpy"
-echo.
+echo. 
