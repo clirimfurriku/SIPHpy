@@ -21,8 +21,8 @@ chmod +x /data/data/com.termux/files/usr/bin/ip.py
 rm -f /data/data/com.termux/files/home/ip.py
 rm -f /data/data/com.termux/files/home/siphpy
 
-echo. ____________________________________________
+echo ____________________________________________
 echo finished installing
 echo ____________________________________________
 echo to start enter command "siphpy"
-echo. 
+echo  
