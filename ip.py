@@ -30,6 +30,7 @@ print (" ")
 print ("To make it faster change timeout")
 print ("For 3G is required 15 sounds time")
 print ("For 4G is required 7 - 10 seconds")
+print ("Actually while testing I used 3-5 sec")
 print ("For timeout lower than required it may contain errors")
 print ("_______________________________________________")
 
@@ -71,6 +72,16 @@ ip = '%d.%d.%d.%d' % (a, b, c, d)
 #End IP in string
 eip = '%d.%d.%d.%d' % (ea, eb, ec, ed)
 
+print ("Do you want to use proxy?")
+print ("Options")
+print ("0) do not use proxy")
+print ("1) use proxy")
+proxy = int(input("Enter Option (0 or 1): "))
+
+if proxy == 1:
+   sprx = input("Enter Proxy IP:Port (*.*.*.*:****): ")
+
+
 print ("Chechking IP's from %s to %s" % (ip, eip))
 
 
@@ -88,7 +99,10 @@ print('Starting to check')
 while (a < 255 and b < 255 and c < 255):
    os.system('echo ___________________________________ >> payload.txt')
    os.system('echo Scanning %s >> payload.txt' % (ip)) 
-   cmd = 'curl -m %d --head http://%s >> payload.txt' % (timeout, ip)
+   if proxy == 0:
+     cmd = 'curl -m %d -I http://%s >> payload.txt' % (timeout, ip)
+   if proxy == 1:
+      cmd = 'curl -m %d -I http://%s -X %s >> payload.txt' % (timeout, ip, sprx)
    os.system(cmd)
    if a == ea and b == eb and c == ec and d == ed: 
       exit()
