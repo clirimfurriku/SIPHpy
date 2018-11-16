@@ -91,7 +91,7 @@ print("_______________________________________________")
 print("_______________________________________________")
 print (" ")
 if proxy == 1:
-   sprx = raw_input("Enter Proxy IP:Port (*.*.*.*:****): ")
+   sprx = input("Enter Proxy IP:Port (*.*.*.*:****): ")
 
 #If you are not a developer don't need to read more
 
