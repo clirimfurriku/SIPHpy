@@ -1,5 +1,6 @@
 import time
 import sys
+import re
 import httplib2
 import subprocess
 from multiprocessing import Process, Queue
@@ -119,30 +120,14 @@ def timecalc(times, timeout):
 def get_ip():
    print("_______________________________________________")
    print (" ")
-   print ("start IP adress a.b.c.d (ex 192.168.10.1)")
+   print ("Enter IP adress a.b.c.d-ea.eb.ec.ed")
+   print (" Example 192.168.10.1-192.168.10.255")
    print (" ")
-   a = int(input("Enter value of a (1 - 255): "))
-   print (" ")
-   b = int(input("Enter value of b (1 - 255): "))
-   print (" ")
-   c = int(input("Enter value of c (1 - 255): "))
-   print (" ")
-   d = int(input("Enter value of d (1 - 255): "))
+   a = raw_input("Enter value (start-end): "))
+
    print (" ")
    print("_______________________________________________")
-   print (" ")
-   print (" Enter end IP address ea.eb.ec.ed (ex 192.168.10.100)")
-   print (" ")
-   #this will check from start IP to end ip
-   ea = int(input("Enter value of ea (1 - 255): "))
-   print (" ")
-   eb = int(input("Enter value of eb (1 - 255): "))
-   print (" ")
-   ec = int(input("Enter value of ec (1 - 255): "))
-   print (" ")
-   ed = int(input("Enter value of ed (1 - 255): "))
-   print (" ")
-   print("_______________________________________________")
+   a = re.split("\D", a)
    print (" ")
    print ("Do you want to use proxy?")
    print (" ")
@@ -157,15 +142,17 @@ def get_ip():
    print("_______________________________________________")
    print (" ")
    if proxy == 1:
-      sprx = raw_input("Enter Proxy IP (*.*.*.*): ")
+      sprx = raw_input("Enter Proxy IP:Port (*.*.*.*:****): ")
       print("_______________________________________________")
       print("_______________________________________________")
       print (" ")
-      port = int(input("Enter Proxy Port (%s:****): "%(sprx)))
+      hepler = re.split("\:", sprx)
+      sprx = helper[0]
+      port = int(helper[1])
+      rem helper
    if proxy ==0:
       sprx = 0 
       port =0
-   a = [a, b, c, d, ea, eb, ec, ed]
    timeout = 1
    return a, timeout, proxy, sprx, port
 
