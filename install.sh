@@ -2,7 +2,7 @@
 echo ____________________________________
 echo installing plugins
 termux-setup-storage
-pkg install -y wget && pkg install -y python && pkg install -y curl 
+pkg install -y wget && pkg install -y python2 && pip2 install httplib2
 echo _____________________________________
 echo installing commands
 echo ______________________________________

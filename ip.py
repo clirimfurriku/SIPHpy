@@ -1,194 +1,222 @@
-﻿import os
+import time
+import sys
+import httplib2
+import subprocess
+from multiprocessing import Process, Queue
 
-# Created by Clirim Furriku on 25.03.2018
-# Latest update 16.11.2018
-# keep it Open Sources
+def first():
+   print (" ")
+   print (" ")
+   print ("            Welcome to IP Header scanner         ")
+   print ("_______________________________________________")
+   print (" Scanner IP Headers Python")
+   print ("_______________________________________________")
+   print (" ")
+   print (" .--. .-..---. .-..-.             ")
+   print (": .--': :: .; :: :; :             ")
+   print ("`. `. : ::  _.':    :.---. .-. .-.")
+   print (" _`, :: :: :   : :: :: .; `: : ; :")
+   print ("`.__.':_;:_;   :_;:_;: ._.'`._ . ;")
+   print ("                     : :     .-. :")
+   print ("                     :_;     `._.'")
+   print (" ")
+   print ("This application is developed by Clirim Furriku")
+   print (" ")
+   print ("               Never change my name            ")
+   print ("_______________________________________________")
+   print ("       My website is www.bardtech.com.       ")
+   print ("_______________________________________________")
+   print ("              Project source link.     ")
+   print ("    https://github.com/clirimfurriku/SIPHpy ")
+   print ("_______________________________________________")
+   print (" ")
+   print ("_______________________________________________")
+   print (" ")
+   # Timeout in seconds for checking one host (5-20)
+   print (" After finishing see pld.txt.txt in downloads folder")
 
-# If you share never change my name 
-print (" ")
-print (" ")
-print ("            Welcome to IP Header scanner         ")
-print ("_______________________________________________")
-print (" Scanner IP Headers Python")
-print ("_______________________________________________")
 
-
-print (" .--. .-..---. .-..-.            ")
-print (": .--': :: .; :: :; :            ")
-print ("`. `. : ::  _.':    :.---. .-. .-.")
-print (" _`, :: :: :   : :: :: .; `: : ; :")
-print ("`.__.':_;:_;   :_;:_;: ._.'`._ . ;")
-print ("                     : :     .-. :")
-print ("                     :_;     `._.'")
-
-print (" ")
-
-print ("This application is developed by Clirim Furriku")
-print (" ")
-print ("               Never change my name            ")
-print ("_______________________________________________")
-print ("       My website is www.bardtech.com.       ")
-print ("_______________________________________________")
-print ("              Project source link.     ")
-print ("    https://github.com/clirimfurriku/SIPHpy ")
-print ("_______________________________________________")
-print (" ")
-print ("_______________________________________________")
-print (" ")
-print ("Keep in mind : ")
-print (" ")
-print ("To make it faster change timeout")
-print ("For 3G is recommended 10 sounds time")
-print ("For 4G is recommended 3 - 8 seconds")
-print ("For timeout lower than required it may contain errors")
-print ("_______________________________________________")
-print ("_______________________________________________")
-# Timeout in seconds for checking one host (5-20)
-print("Timeout in seconds for checking one host (3 - 20)")
-timeout = 10
-print (" ")
-timeout = int(input("Enter timeout: "))
-print (" ")
-print (" After finishing see payload.txt in downloads folder")
-print("_______________________________________________")
-print (" ")
-print ("start IP adress a.b.c.d (ex 192.168.10.1)")
-print (" ")
-a = int(input("Enter value of a (1 - 255): "))
-print (" ")
-b = int(input("Enter value of b (1 - 255): "))
-print (" ")
-c = int(input("Enter value of c (1 - 255): "))
-print (" ")
-d = int(input("Enter value of d (1 - 255): "))
-print (" ")
-print("_______________________________________________")
-print (" ")
-print (" Enter end IP address ea.eb.ec.ed (ex 192.168.10.100)")
-print (" ")
-#this will check from start IP to end ip
-ea = int(input("Enter value of ea (1 - 255): "))
-print (" ")
-eb = int(input("Enter value of eb (1 - 255): "))
-print (" ")
-ec = int(input("Enter value of ec (1 - 255): "))
-print (" ")
-ed = int(input("Enter value of ed (1 - 255): "))
-print (" ")
-
-print("_______________________________________________")
-print (" ")
-print ("Do you want to use proxy?")
-print (" ")
-print ("Options")
-print (" ")
-print ("0) Do not use proxy")
-print ("1) Use proxy")
-print (" ")
-proxy = int(input("Enter Option (0 or 1): "))
-print (" ")
-print("_______________________________________________")
-print("_______________________________________________")
-print (" ")
-if proxy == 1:
-   sprx = input("Enter Proxy IP:Port (*.*.*.*:****): ")
-
-#If you are not a developer don't need to read more
+def hget(ip, rsp, proxy, sprx, port):
+   url = "http://%s" %(ip)
+   http_interface = ""
+   if proxy ==0:
+      proxing = httplib2.Http(timeout=1)
+   if proxy ==1: 
+      proxing = httplib2.Http(proxy_info = httplib2.ProxyInfo(httplib2.socks.PROXY_TYPE_HTTP_NO_TUNNEL, sprx, port), timeout=1)
+   http_interface = proxing
+   error = 0
+   try: 
+      response, content = http_interface.request(url, method="HEAD")
+      print ("\n\n\r[i] Response status: %d - %s for %s\n" % (response.status, response.reason, ip))
+      rsp.append(ip)
+      response.__dict__ 
+   except httplib2.ServerNotFoundError, e:
+      error +=1
+      print (e.message)
+   except httplib2.socket.error, msg:
+      error +=1
+   #   print("\r[-] Error (1) Direct access of IP : %s" % (ip))
+   except httplib2.httplib.ResponseNotReady:
+      error +=1
+     # print("\r[-] Error (2) Direct access of IP: %s" % (ip))
+   return rsp
 
 
 
 
+#a.b.c.d = a[0].a[1].a[2].a[3]
+#ea.eb...=a[4].b[1]......
 
 
+def ip_calc(a, times):
+   ip= []
+   thend = 0
+   stops = 0
+   print('\n\n[i] Checking from  %d.%d.%d.%d to %d.%d.%d.%d \n' % (a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]))
+   ip.append('%d.%d.%d.%d' % (a[0], a[1], a[2], a[3]))
+   while (a[0] <= 255 or a[1] <= 255 or a[2] <= 255 or a[3] <= 255):
+      if a[0] == a[4] and a[1] == a[5] and a[2] == a[6] and a[3] == a[7]:
+         thend = 1
+         #print("\r[+] Successfully calculated IPs")
+         break
+      a[3] +=1
+      if a[3] >= 255:
+         a[2] +=1
+         a[3] = 0
+      if a[2] >= 255:
+         a[1] +=1
+         a[2] = 0
+      if a[1] >= 255:
+         a[0] +=1
+         a[1] = 0
+      if a[0] >= 255:
+         break
+      times +=1
+      ip.append('%d.%d.%d.%d' % (a[0], a[1], a[2], a[3]))
+      if stops == 100:
+         print("Calculating IPs 100 ended")
+         break
+      stops += 1
+   return a, times, ip, thend
+
+def scaner(ip, proxy, sprx, port):
+   rsp = []
+   for adress in ip:
+      rsp = hget(adress, rsp, proxy, sprx, port)
+   results(rsp)
+
+def timecalc(times, timeout):
+   ttime = times*timeout
+   print (" ")
+   if ttime > 60:
+      ttime = ttime/60
+      print("[i]Total time to finish this scan is: %d minutes" % (ttime))
+   else:
+      print("[i]Total time to finish this scan is: %d seconds" % (ttime))
+   print (" ")
 
 
+def get_ip():
+   print("_______________________________________________")
+   print (" ")
+   print ("start IP adress a.b.c.d (ex 192.168.10.1)")
+   print (" ")
+   a = int(input("Enter value of a (1 - 255): "))
+   print (" ")
+   b = int(input("Enter value of b (1 - 255): "))
+   print (" ")
+   c = int(input("Enter value of c (1 - 255): "))
+   print (" ")
+   d = int(input("Enter value of d (1 - 255): "))
+   print (" ")
+   print("_______________________________________________")
+   print (" ")
+   print (" Enter end IP address ea.eb.ec.ed (ex 192.168.10.100)")
+   print (" ")
+   #this will check from start IP to end ip
+   ea = int(input("Enter value of ea (1 - 255): "))
+   print (" ")
+   eb = int(input("Enter value of eb (1 - 255): "))
+   print (" ")
+   ec = int(input("Enter value of ec (1 - 255): "))
+   print (" ")
+   ed = int(input("Enter value of ed (1 - 255): "))
+   print (" ")
+   print("_______________________________________________")
+   print (" ")
+   print ("Do you want to use proxy?")
+   print (" ")
+   print ("Options")
+   print (" ")
+   print ("0) Do not use proxy")
+   print ("1) Use proxy")
+   print (" ")
+   proxy = int(input("Enter Option (0 or 1): "))
+   print (" ")
+   print("_______________________________________________")
+   print("_______________________________________________")
+   print (" ")
+   if proxy == 1:
+      sprx = raw_input("Enter Proxy IP (*.*.*.*): ")
+      print("_______________________________________________")
+      print("_______________________________________________")
+      print (" ")
+      port = int(input("Enter Proxy Port (%s:****): "%(sprx)))
+   if proxy ==0:
+      sprx = 0 
+      port =0
+   a = [a, b, c, d, ea, eb, ec, ed]
+   timeout = 1
+   return a, timeout, proxy, sprx, port
 
-#IP format in string
-ip = '%d.%d.%d.%d' % (a, b, c, d)
 
-#End IP in string
-eip = '%d.%d.%d.%d' % (ea, eb, ec, ed)
+def results(rsp):
+   for grsp in rsp:
+      print '[+] ', grsp, 'is alive'
+      subprocess.call('echo %s >> pld.txt' % (grsp), shell=True)
 
-print("_______________________________________________")
+def mthrd(a, start, proxy, sprx, port):
+   thend = 0
+   times = 1
+   t= []
+   tnr=1
+   whi = 0
+   while thend == 0:
+      (a, times, ip, thend) = ip_calc(a, times)
+      t.append(Process(target=scaner, args=(ip, proxy, sprx, port, )))
+   #subprocess.call('echo [i] Thread number To Check IPs is: %d >> pld.txt' % (times), shell=True)
+   for threds in t:
+      threds.start()
+      #print '[+] Started thread', tnr
+      tnr +=1
+      if whi  == 500:
+         time.sleep(30)
+         whi =0
+      whi += 1
+      #subprocess.call('echo [i] Thread number %d Started To Check IPs >> pld.txt' % (tnr), shell=True)
+   #if thend == 1:
+      #fin = (Process(target=finished, args=(start,)))
+      #fin.start()      
+   #for threds in t:
+     # subprocess.call('echo [i] Joining, %s threads are alive>> pld.txt' % (), shell=True)
+   #   threds.join(timeout=None)    
+   return tnr, times
 
 
-if proxy ==1:
-   print ("Using Proxy: %s" % (sprx))
+start = time.time() 
 
+first()
 
-print("_______________________________________________")
+(a, timeout, proxy, sprx, port) = get_ip()
+(tnr, times) = mthrd(a, start, proxy, sprx, port)
+subprocess.call('echo [i] Checked %d IPs >> pld.txt' % (times), shell=True)
+subprocess.call('echo [i] Threads Used To Check IPs: %d >> pld.txt' % (tnr), shell=True)
 
-print ("Chechking IP's from %s to %s" % (ip, eip))
-
-
-ttime = 0
-cka = a
-ckb = b
-ckc = c
-ckd = d
-while (cka < 255 and ckb < 255 and ckc < 255):
-
-  if cka == ea and ckb == eb and ckc == ec and ckd == ed: 
-      break
-  if ckd == 255:
-      ckc +=1
-      ckd = 0
-  if ckc == 255:
-      ckb +=1
-      ckc = 0
-  if b == 255:
-      cka +=1
-      ckb = 0
-  ckd +=1
-  ttime +=timeout
-   
-ttime = ttime / 60
-print (" ")
-
-print("Total time to finish this scan is: %d minutes" % (ttime))
-print("_______________________________________________")
-
-print (" ")
-os.system('echo ______________________________ >> payload.txt')
-os.system('echo This application is created by >> payload.txt')
-os.system('echo _________Clirim_Furriku________ >> payload.txt')
-os.system('echo ________________________________ >> payload.txt')
-os.system('echo _______ Check my website ______ >> payload.txt')
-os.system('echo _______ www.bardtech.com _______ >> payload.txt')
-os.system('echo ________________________________ >> payload.txt')
-
-os.system('echo Checking IP between %s to %s >> payload.txt' % (ip, eip))
-
-print('Starting to check')
-print('Please check payload.txt after finishing')
-while (a < 255 and b < 255 and c < 255):
-   os.system('echo ___________________________________ >> payload.txt')
-   if a == ea and b == eb and c == ec and d == ed: 
-      break
-   if d == 255:
-      c +=1
-      d = 0
-   if c == 255:
-      b +=1
-      c = 0
-   if b == 255:
-      a +=1
-      b = 0
-   d +=1
-   ip = '%s %d.%d.%d.%d' % (ip, a, b, c, d)
-
-if proxy == 0:
-  cmd = 'curl --retry 0 -m %d  -I %s -vs >>payload.txt 2>&1' % (timeout, ip)
-if proxy == 1:
-   cmd = 'curl --retry 0 -m %d -I %s -X %s -vs >>payload.txt 2>&1' % (timeout, ip, sprx)
-
-os.system(cmd)
-print("_______________________________________________")
-print("_______________________________________________")
-print(" ")
-print ("Successful")
-print ("Please check payload.txt file for output")
-print(" ")
-print("_______________________________________________")
-print("_______________________________________________")
-exit
+end = time.time() 
+print("")
+took =  end - start
+print'[i] Checked ', times, ' IPs'
+print'[i] Threads Used To Check IPs: ', tnr
+print'[i] Total time to Finish is: ', took
+subprocess.call('echo [i] Time Taken To Check was %s >> pld.txt' % (took), shell=True)
+exit()
