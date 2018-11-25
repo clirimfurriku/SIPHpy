@@ -123,11 +123,14 @@ def get_ip():
    print ("Enter IP adress a.b.c.d-ea.eb.ec.ed")
    print (" Example 192.168.10.1-192.168.10.255")
    print (" ")
-   a = raw_input("Enter value (start-end): "))
+   b = raw_input("Enter value (start-end): ")
 
    print (" ")
    print("_______________________________________________")
-   a = re.split("\D", a)
+   b = re.split("\D", b)
+   a = []
+   for element in b:
+      a.append(int(element))
    print (" ")
    print ("Do you want to use proxy?")
    print (" ")
@@ -149,7 +152,6 @@ def get_ip():
       hepler = re.split("\:", sprx)
       sprx = helper[0]
       port = int(helper[1])
-      rem helper
    if proxy ==0:
       sprx = 0 
       port =0
