@@ -2,4 +2,4 @@
 
 cd /data/data/com.termux/files/home/storage/downloads/
 
-python2 /data/data/com.termux/files/usr/bin/ip.py
+python /data/data/com.termux/files/usr/bin/ip.py
