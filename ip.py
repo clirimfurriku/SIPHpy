@@ -1,6 +1,7 @@
 import time
 import re
 import httplib2
+import os
 import subprocess
 import multiprocessing as mp
 
@@ -32,8 +33,8 @@ def first():
     print(" ")
     print("_______________________________________________")
     print(" ")
-    print(" After finishing see pld.txt.txt in Downloads folder")
-
+    locaton = os.getcwd()
+    print("After finishing see resylts in " + locaton + "\pld.txt")
 
 def hget(ip, rsp, proxy, sprx, port):
     url = "http://%s" % (ip)
