@@ -37,7 +37,7 @@ def first():
     print("_______________________________________________")
     print(" ")
     locaton = os.getcwd()
-    print("After finishing see resylts in " + locaton + "\pld.txt")
+    print("After finishing see results in " + locaton + "\pld.txt")
 
 
 def hget(ip, rsp, proxy, set_proxy, port):
@@ -109,7 +109,24 @@ def get_ip():
     print("Enter IP address a.b.c.d-ea.eb.ec.ed")
     print("Example 192.168.10.1-192.168.10.255")
     print(" ")
-    b = input("Enter value (start-end): ")
+    try:
+        b = input("Enter value (start-end): ")
+    except:
+        print("[!] Wrong Value")
+        print("Enter IP address a.b.c.d-ea.eb.ec.ed")
+        print("Example 192.168.10.1-192.168.10.255")
+        b = input("Enter value (start-end): ")
+    while b != re.search("(\d*\D\d*\D\d*\D\d*\D\d*\D\d*\D\d*\D\d)", b ).group(0):
+        print("\n\nYour Value is wrong")
+        print("Please enter ip as in example")
+        print("Example 192.168.10.1-192.168.10.255")
+        try:
+            b = input("Enter value (start-end): ")
+        except:
+            print("[!] Wrong Value")
+            print("Enter IP address a.b.c.d-ea.eb.ec.ed")
+            print("Example 192.168.10.1-192.168.10.255")
+            b = input("Enter value (start-end): ")
     print(" ")
     print("_______________________________________________")
     b = re.split("\D", b)
@@ -140,12 +157,21 @@ def get_ip():
         proxy = int(input("Enter Option (0 or 1): "))
     except ValueError:
         proxy = 0
+    while proxy is not 1 and proxy is not 0:
+        print("Wrong Option")
+        try:
+            proxy = int(input("Enter Option (0 or 1): "))
+        except ValueError:
+            pass
     print(" ")
     print("_______________________________________________")
     print("_______________________________________________")
     print(" ")
     if proxy == 1:
         set_proxy = input("Enter Proxy IP:Port (*.*.*.*:****): ")
+        while set_proxy != re.search("(\d*\D\d*\D\d*\D\d*\D\d*\D\d*\D\d*\D\d)", set_proxy ).group(0):
+            print("Wrong value of proxy")
+            set_proxy = input("Enter Proxy IP:Port (*.*.*.*:****): ")
         helper = re.split("\:", set_proxy)
         set_proxy = helper[0]
         port = int(helper[1])
