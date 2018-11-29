@@ -9,7 +9,9 @@ This is the fastest App out there for this specific search.
 
 How to install
 --------------
+
 __Termux (Android)__
+
 Install command
 ```
 pkg install wget && wget https://raw.githubusercontent.com/clirimfurriku/SIPHpy/master/install.sh && bash install.sh
@@ -17,6 +19,7 @@ pkg install wget && wget https://raw.githubusercontent.com/clirimfurriku/SIPHpy/
 On Android does not support Python Pool so multithreading is not good, and can crash your phone if you scan too many IPs
 
 __Linux__ (Tested on Ubuntu,Kali)
+
 Install Python and Download resourses
 ```
 sudo apt-get install python3 wget
@@ -28,6 +31,7 @@ And run using
 python3 2.py
 ```
 __Windows__
+
 Download Python 3.* and add to path
 Download 2.py (https://raw.githubusercontent.com/clirimfurriku/SIPHpy/master/2.py)
 Open CMD and go to the downloaded file directory
