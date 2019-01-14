@@ -169,7 +169,7 @@ def get_ip():
     print(" ")
     if proxy == 1:
         set_proxy = input("Enter Proxy IP:Port (*.*.*.*:****): ")
-        while set_proxy != re.search("(\d*\D\d*\D\d*\D\d*\D\d*\D\d*\D\d*\D\d)", set_proxy ).group(0):
+        while set_proxy != re.search("(\d*\D\d*\D\d*\D\d*\D\d*)", set_proxy ).group(0):
             print("Wrong value of proxy")
             set_proxy = input("Enter Proxy IP:Port (*.*.*.*:****): ")
         helper = re.split("\:", set_proxy)
