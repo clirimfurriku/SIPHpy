@@ -1,9 +1,9 @@
 import time
 import re
-import httplib2
 import os
 import subprocess
 import multiprocessing as mp
+import httplib2
 
 def first():
     print(" ")
@@ -34,14 +34,14 @@ def first():
     print("_______________________________________________")
     print(" ")
     locaton = os.getcwd()
-    print("After finishing see resylts in " + locaton + "\pld.txt")
+    print("After finishing see resylts in " + locaton + "/pld.txt")
 
 def hget(ip, rsp, proxy, sprx, port):
     url = "http://%s" % (ip)
     if proxy == 0:
         proxing = httplib2.Http(timeout=1)
     elif proxy == 1:
-        proxing = httplib2.Http(proxy_info=httplib2.ProxyInfo(httplib2.socks.PROXY_TYPE_HTTP_NO_TUNNEL, sprx, port),timeout=1)
+        proxing = httplib2.Http(proxy_info=httplib2.ProxyInfo(httplib2.socks.PROXY_TYPE_HTTP, sprx, port),timeout=1)
     http_interface = proxing
     try:
         response, content = http_interface.request(url, method="HEAD")
@@ -51,7 +51,7 @@ def hget(ip, rsp, proxy, sprx, port):
         print(e.message)
     except httplib2.socket.error:
         print("\r[i] Response status: Error - Unreachable for %s" % ip, end="")
-    except httplib2.httplib.ResponseNotReady:
+    except:
         pass
     return rsp
 
@@ -93,8 +93,10 @@ def ip_calc(a, times):
 
 def scaner(ip, proxy, sprx, port, output):
     rsp = []
-    for adress in ip:
-        rsp = hget(adress, rsp, proxy, sprx, port)
+    while ip:
+        rsp = hget(ip[0], rsp, proxy, sprx, port)
+        ip.remove(ip[0])
+    del ip
     for grsp in rsp:
         print(grsp)
         #subprocess.call('echo %s >> pld.txt' % (grsp), shell=True)
@@ -163,7 +165,7 @@ def mthrd(a, proxy, sprx, port):
             thred.join(timeout=2)
     finished = 0
     while finished==0:
-        if 'started'in mp.active_children():
+        if 'started' in mp.active_children():
             print('\rWorking |', end="")
             time.sleep(0.1)
             print('\rWorking /', end="")
@@ -184,7 +186,8 @@ def mthrd(a, proxy, sprx, port):
     subprocess.call('echo _________Created By:________ >> pld.txt', shell=True)
     subprocess.call('echo _______Clirim Furriku_______ >> pld.txt', shell=True)
     subprocess.call('echo ____________________________ >> pld.txt', shell=True)
-    subprocess.call('echo Checking from  %d.%d.%d.%d to %d.%d.%d.%d >> pld.txt' % (b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]), shell=True)
+    subprocess.call('echo Checking from  %d.%d.%d.%d to %d.%d.%d.%d >> pld.txt' %
+                                 (b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]), shell=True)
     subprocess.call('echo ____________________________ >> pld.txt', shell=True)
     subprocess.call('echo __________Results:__________ >> pld.txt', shell=True)
     subprocess.call('echo ____________________________ >> pld.txt', shell=True)
@@ -214,4 +217,4 @@ if __name__ == '__main__':
     # mp.set_start_method('spawn')
     # mp.get_all_start_methods()
     # mp.freeze_support()
-    main(
+    main()
