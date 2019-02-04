@@ -1,17 +1,99 @@
-import time
-import re
-import os
-import subprocess
-import multiprocessing as mp
+import threading
 import httplib2
+from time import sleep, time
+
+proxy = 0
+proxy_ip = ''
+port = 8080
+
+
+def back_calc(ip_to_calc, threads_to_split):
+    list_of_ip_calculated = []
+    i = 0
+    if (ip_to_calc[0] >= ip_to_calc[4] and ip_to_calc[1] >= ip_to_calc[5] and
+            ip_to_calc[2] >= ip_to_calc[6] and ip_to_calc[3] >= ip_to_calc[7]):
+        return ip_to_calc, []
+    while i < threads_to_split and (ip_to_calc[0] < ip_to_calc[4] or ip_to_calc[1] < ip_to_calc[5] or
+                                    ip_to_calc[2] < ip_to_calc[6] or ip_to_calc[3] < ip_to_calc[7]):
+        i += 1
+        ip_to_calc[3] += 1
+        if ip_to_calc[3] > 255:
+            ip_to_calc[2] += 1
+            ip_to_calc[3] = 0
+        if ip_to_calc[2] > 255:
+            ip_to_calc[1] += 1
+            ip_to_calc[2] = 0
+        if ip_to_calc[1] > 255:
+            ip_to_calc[0] += 1
+            ip_to_calc[1] = 0
+        if ip_to_calc[0] > 255:
+            list_of_ip_calculated.append(
+                str(ip_to_calc[0]) + '.' + str(ip_to_calc[1]) + '.' + str(ip_to_calc[2]) + '.' + str(ip_to_calc[3]))
+            return ip_to_calc, list_of_ip_calculated
+        if i == threads_to_split:
+            list_of_ip_calculated.append(
+                str(ip_to_calc[0]) + '.' + str(ip_to_calc[1]) + '.' + str(ip_to_calc[2]) + '.' + str(ip_to_calc[3]))
+            return ip_to_calc, list_of_ip_calculated
+        list_of_ip_calculated.append(
+            str(ip_to_calc[0]) + '.' + str(ip_to_calc[1]) + '.' + str(ip_to_calc[2]) + '.' + str(ip_to_calc[3]))
+    return ip_to_calc, list_of_ip_calculated
+
+
+def get_header(ip_address):
+    print('\rCanning {}'.format(ip_address), end="")
+    poxing = httplib2.Http(timeout=1)
+    if proxy == 1:
+        poxing = httplib2.Http(proxy_info=httplib2.ProxyInfo(httplib2.socks.PROXY_TYPE_HTTP, proxy_ip, port),
+                               timeout=1)
+    http_interface = poxing
+    try:
+        response, content = http_interface.request(ip_address, method="HEAD")
+        print("\r\n[i] Response status: {} - {} for {}".format(response.status, response.reason, ip_address), end="\n")
+    except httplib2.ServerNotFoundError:
+        print('\rUnable to resolve the host {}.'.format(ip_address), end="")
+    except httplib2.socket.error:
+        print("\r[i] Response status: Error - Unreachable for {} ".format(ip_address), end="")
+    except httplib2.socks.HTTPError as e:
+        if 'Forbidden' in str(e.args):
+            print("\r\n[i] Response status: Error - Forbidden for {} ".format(ip_address), end="\n")
+        else:
+            print(e.args)
+    # except:
+    #     print("\r[i] Unknown error for {} ".format(ip_address), end="")
+    #     pass
+
+
+def calculate_thread(ip_to_split, threads_to_split):
+    # 1.1.1.1-2.1.1.1 = (2-1)*(255^3)+(1-1)*(255^2)+(1-1)*(255) + 1-1
+    # 2-1 = 1 * 255 * 255  * 255 =
+    # ip_to_split = [1, 1, 1, 1, 2, 1, 1, 1]
+    #       0, 1, 2, 3, 4, 5, 6, 7
+    total_num_of_ips = (ip_to_split[4] - ip_to_split[0]) * (255 ** 3) + \
+                       (ip_to_split[5] - ip_to_split[1]) * (255 ** 2) + \
+                       (ip_to_split[6] - ip_to_split[2]) * 255 + \
+                       (ip_to_split[7] - ip_to_split[3])
+    print('Total number of IP to Scan', total_num_of_ips)
+    num_of_ip_for_a_thread = int(total_num_of_ips / threads_to_split)
+    print('There will be {} IPs scanned for thread'.format(num_of_ip_for_a_thread + 1))
+    return num_of_ip_for_a_thread + 1, total_num_of_ips
+
+
+def do_scan(*args):
+    # print(len(args))
+    if (len(args)) == 0:
+        return
+    for ip_to_scan in args:
+        address = 'http://' + ip_to_scan
+        get_header(address)
+
 
 def first():
     print(" ")
     print(" ")
-    print("            Welcome to IP Header scanner         ")
-    print("_______________________________________________")
-    print(" Scanner IP Headers Python")
-    print("_______________________________________________")
+    print("    Welcome to IP Header scanner     ")
+    print("_______________________ _____________")
+    print("       Scanner IP Headers Python     ")
+    print("_____________________________________")
     print(" ")
     print("    .--. .-..---. .-..-.             ")
     print("   : .--': :: .; :: :; :             ")
@@ -21,104 +103,55 @@ def first():
     print("                        : :     .-' ;")
     print("                        :_;     `--' ")
     print(" ")
-    print("This application is developed by Clirim Furriku")
+    print("  This application is developed by:  ")
+    print("                      Clirim Furriku ")
     print(" ")
-    print("               Never change my name            ")
-    print("_______________________________________________")
-    print("       My website is www.bardtech.com.       ")
-    print("_______________________________________________")
-    print("                Project source link.     ")
-    print("    https://github.com/clirimfurriku/SIPHpy ")
-    print("_______________________________________________")
+    print("_____________________________________")
+    print("                                     ")
+    print("_____________________________________")
+    print("         Project source link:        ")
+    print("https://github.com/clirimfurriku/SIPHpy")
+    print("______________________________________")
     print(" ")
-    print("_______________________________________________")
+    print("______________________________________")
     print(" ")
-    locaton = os.getcwd()
-    print("After finishing see resylts in " + locaton + "/pld.txt")
-
-def hget(ip, rsp, proxy, sprx, port):
-    url = "http://%s" % (ip)
-    if proxy == 0:
-        proxing = httplib2.Http(timeout=1)
-    elif proxy == 1:
-        proxing = httplib2.Http(proxy_info=httplib2.ProxyInfo(httplib2.socks.PROXY_TYPE_HTTP, sprx, port),timeout=1)
-    http_interface = proxing
-    try:
-        response, content = http_interface.request(url, method="HEAD")
-        print("\r[i] Response status: %d - %s for %s" % (response.status, response.reason, ip), end="")
-        rsp.append("[+] " + ip + " Status: " + str(response.status) + " - " + response.reason)
-    except httplib2.ServerNotFoundError as e:
-        print(e.message)
-    except httplib2.socket.error:
-        print("\r[i] Response status: Error - Unreachable for %s" % ip, end="")
-    except:
-        pass
-    return rsp
 
 
-#  how IP is saved a.b.c.d = a[0].a[1].a[2].a[3]
-# end IP address ea.eb.ec.ed=a[4].a[5].a[6].a[7]
-
-def ip_calc(a, times):
-    ip = []
-    thend = 0
-    stops = 0
-    print('\r[i] Checking from  %d.%d.%d.%d to %d.%d.%d.%d' % (a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]), end="")
-    ip.append('%d.%d.%d.%d' % (a[0], a[1], a[2], a[3]))
-    if a[0] > 255 or a[1] > 255 or a[2] > 255 or a[3] > 255:
-        thend = 1
-    while a[0] <= 255 or a[1] <= 255 or a[2] <= 255 or a[3] <= 255:
-        if a[0] >= a[4] and a[1] >= a[5] and a[2] >= a[6] and a[3] >= a[7]:
-            thend = 1
-            break
-        a[3] += 1
-        if a[3] >= 255:
-            a[2] += 1
-            a[3] = 0
-        if a[2] >= 255:
-            a[1] += 1
-            a[2] = 0
-        if a[1] >= 255:
-            a[0] += 1
-            a[1] = 0
-        if a[0] >= 255:
-            break
-        times += 1
-        ip.append('%d.%d.%d.%d' % (a[0], a[1], a[2], a[3]))
-        if stops == 50:
-            break
-        stops += 1
-    return a, times, ip, thend
-
-
-def scaner(ip, proxy, sprx, port, output):
-    rsp = []
-    while ip:
-        rsp = hget(ip[0], rsp, proxy, sprx, port)
-        ip.remove(ip[0])
-    del ip
-    for grsp in rsp:
-        print(grsp)
-        #subprocess.call('echo %s >> pld.txt' % (grsp), shell=True)
-        output.put((rsp))
-
-
-def get_ip():
-    print("_______________________________________________")
+def get_info():
+    global proxy, proxy_ip, port
+    print("______________________________________")
     print(" ")
-    print("Enter IP adress a.b.c.d-ea.eb.ec.ed")
-    print("Example 192.168.10.1-192.168.10.255")
+    print("  Enter IP address where you want to  ")
+    print("                   Start Scanning from")
+    print("          Example 192.168.10.1        ")
     print(" ")
-    b = input("Enter value (start-end): ")
+    b = input("Enter value a.b.c.d: ")
     print(" ")
-    print("_______________________________________________")
-    b = re.split("\D", b)
+    print("______________________________________")
+    b = b.split(".")
     a = []
     for element in b:
         a.append(int(element))
     del b
     print(" ")
-    print("Do you want to use proxy?")
+    print("  Enter IP address where you want to  ")
+    print("                     END Scanning     ")
+    print("          Example 192.168.100.1       ")
+    print(" ")
+    b = input("Enter value a.b.c.d: ")
+    print(" ")
+    print("______________________________________")
+    b = b.split(".")
+    for element in b:
+        a.append(int(element))
+    del b
+    print(" ")
+    print("How many Threads do you want to use:")
+    print(" ")
+    threads_to_use = int(input("Enter number of threads: "))
+    print(" ")
+    print("______________________________________")
+    print("Do you want to use proxy? ")
     print(" ")
     print("Options")
     print(" ")
@@ -130,91 +163,49 @@ def get_ip():
     print("_______________________________________________")
     print("_______________________________________________")
     print(" ")
+    proxy_ip = 0
+    port = 0
     if proxy == 1:
-        sprx = input("Enter Proxy IP:Port (*.*.*.*:****): ")
+        proxy_ip = input("Enter Proxy IP:Port (*.*.*.*:****): ")
         print("_______________________________________________")
         print("_______________________________________________")
         print(" ")
-        helper = re.split("\:", sprx)
-        sprx = helper[0]
+        helper = proxy_ip.split(":")
+        proxy_ip = helper[0]
         port = int(helper[1])
-    elif proxy == 0:
-        sprx = 0
-        port = 0
-    return a, proxy, sprx, port
+    return a, threads_to_use
 
 
-def mthrd(a, proxy, sprx, port):
-    thend: int = 0
-    times: int = 1
-    b = a
-    t = []
-    output = mp.Queue()
-    whi = 0
-    while thend == 0:
-        (a, times, ip, thend) = ip_calc(a, times)
-        t.append(mp.Process(target=scaner, args=(ip, proxy, sprx, port, output)))
-    for thred in t:
-        thred.start()
-        if whi == 100:
-            time.sleep(30)
-            whi = 0
-        whi += 1
-    for thred in t:
-        if thred.is_alive():
-            thred.join(timeout=2)
-    finished = 0
-    while finished==0:
-        if 'started' in mp.active_children():
-            print('\rWorking |', end="")
-            time.sleep(0.1)
-            print('\rWorking /', end="")
-            time.sleep(0.1)
-            print('\rWorking -', end="")
-            time.sleep(0.1)
-            print('\rWorking \\', end="")
-            time.sleep(0.1)
-        else:
-            finished = 1
-            print('\rDone!     ', end="")
-            time.sleep(1)
-    print("Finished")
-    results = [output.get() for p in t]
-    subprocess.call('echo ____________________________ >> pld.txt', shell=True)
-    subprocess.call('echo ___________SIPHpy___________ >> pld.txt', shell=True)
-    subprocess.call('echo ____________________________ >> pld.txt', shell=True)
-    subprocess.call('echo _________Created By:________ >> pld.txt', shell=True)
-    subprocess.call('echo _______Clirim Furriku_______ >> pld.txt', shell=True)
-    subprocess.call('echo ____________________________ >> pld.txt', shell=True)
-    subprocess.call('echo Checking from  %d.%d.%d.%d to %d.%d.%d.%d >> pld.txt' %
-                                 (b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]), shell=True)
-    subprocess.call('echo ____________________________ >> pld.txt', shell=True)
-    subprocess.call('echo __________Results:__________ >> pld.txt', shell=True)
-    subprocess.call('echo ____________________________ >> pld.txt', shell=True)
-    for result in results:
-        for ip in result:
-            print(ip)
-            subprocess.call('echo %s >> pld.txt' % (ip), shell=True)
-    return times
+first()
+ip, threads = get_info()
 
+start = time()
+# #     0, 1, 2, 3,|4, 5, 6, 7
+# ip = [1, 1, 1, 1, 2, 1, 1, 1]
+# threads = 20000
 
-def main():
-    (a, proxy, sprx, port) = get_ip()
-    start = time.time()
-    times = mthrd(a, proxy, sprx, port)
-    subprocess.call('echo ____________________________ >> pld.txt', shell=True)
-    subprocess.call('echo [i] Checked %d IPs >> pld.txt' % (times), shell=True)
-    print('[i] Checked ' + str(times) + ' IPs')
-    print("")
-    end = time.time()
-    took = end - start
-    print('[i] Total time to Finish was: ' + str(took))
-    subprocess.call('echo [i] Time Taken To Check IPs was %s >> pld.txt' % (took), shell=True)
+print('Scanning IP Addresses form {}.{}.{}.{} to {}.{}.{}.{}'.format(ip[0], ip[1], ip[2], ip[3],
+                                                                     ip[4], ip[5], ip[6], ip[7]))
+print("_______________________________________________")
+print(" ")
+print("Using {} Threads".format(threads))
+print("_______________________________________________")
+print(" ")
+if proxy == 1:
+    print("Using Proxy {}:{}".format(proxy_ip, port))
+print(" ")
+num_of_ip_for_thread, total_num = calculate_thread(ip, threads)
 
+for ips in range(num_of_ip_for_thread):
+    ip, list_of_ip = back_calc(ip, num_of_ip_for_thread)
+    if len(list_of_ip) == 0:
+        break
+    thread = threading.Thread(target=do_scan, args=list_of_ip)
+    thread.start()
 
-if __name__ == '__main__':
-    first()
-    # mp.set_start_method('spawn')
-    # mp.get_all_start_methods()
-    # mp.freeze_support()
-    main()
+while threading.active_count() > 1:
+    print('\rThere are {} threads active'.format(threading.active_count()), end='')
+    sleep(5)
+end = time()
+took = end - start
+print('\r\nIt took {:2f}s To Scan {} IP Addresses'.format(took, total_num))
