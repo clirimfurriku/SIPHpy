@@ -1,3 +1,4 @@
+#pylint:disable=W0312
 import threading
 import httplib2
 from time import sleep, time
@@ -74,8 +75,12 @@ def calculate_thread(ip_to_split, threads_to_split):
                        (ip_to_split[7] - ip_to_split[3])
     print('Total number of IP to Scan', total_num_of_ips)
     num_of_ip_for_a_thread = int(total_num_of_ips / threads_to_split)
+    ip_left = total_num_of_ips - float(num_of_ip_for_a_thread * threads_to_split)
+    print(ip_left)
+    while total_num_of_ips - float(num_of_ip_for_a_thread * threads_to_split) > 0:
+        num_of_ip_for_a_thread += 1
     print('There will be {} IPs scanned for thread'.format(num_of_ip_for_a_thread + 1))
-    return num_of_ip_for_a_thread + 1, total_num_of_ips
+    return num_of_ip_for_a_thread, total_num_of_ips
 
 
 def do_scan(*args):
@@ -196,7 +201,7 @@ if proxy == 1:
 print(" ")
 num_of_ip_for_thread, total_num = calculate_thread(ip, threads)
 
-for ips in range(num_of_ip_for_thread):
+for ips in range(threads):
     ip, list_of_ip = back_calc(ip, num_of_ip_for_thread)
     if len(list_of_ip) == 0:
         break
