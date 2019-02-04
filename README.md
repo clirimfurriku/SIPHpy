@@ -40,7 +40,7 @@ python3 ip.py
 __Windows__
 
 Download Python 3.* and add to path
-Download 2.py (https://raw.githubusercontent.com/clirimfurriku/SIPHpy/master/2.py)
+Download ip.py (https://raw.githubusercontent.com/clirimfurriku/SIPHpy/master/ip.py)
 Open CMD and go to the downloaded file directory
 Than run commands
 ```
