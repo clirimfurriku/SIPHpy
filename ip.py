@@ -1,4 +1,3 @@
-#pylint:disable=W0312
 import threading
 import httplib2
 from time import sleep, time
@@ -6,16 +5,20 @@ from time import sleep, time
 proxy = 0
 proxy_ip = ''
 port = 8080
+num_of_ip_for_thread = 1
+finished = False
 
 
-def back_calc(ip_to_calc, threads_to_split):
+def back_calc(ip_to_calc):
+    global finished
     list_of_ip_calculated = []
     i = 0
     if (ip_to_calc[0] >= ip_to_calc[4] and ip_to_calc[1] >= ip_to_calc[5] and
             ip_to_calc[2] >= ip_to_calc[6] and ip_to_calc[3] >= ip_to_calc[7]):
-        return ip_to_calc, []
-    while i < threads_to_split and (ip_to_calc[0] < ip_to_calc[4] or ip_to_calc[1] < ip_to_calc[5] or
-                                    ip_to_calc[2] < ip_to_calc[6] or ip_to_calc[3] < ip_to_calc[7]):
+        finished = True
+        return ip_to_calc
+    while i < num_of_ip_for_thread and (ip_to_calc[0] < ip_to_calc[4] or ip_to_calc[1] < ip_to_calc[5] or
+                                        ip_to_calc[2] < ip_to_calc[6] or ip_to_calc[3] < ip_to_calc[7]):
         i += 1
         ip_to_calc[3] += 1
         if ip_to_calc[3] > 255:
@@ -30,18 +33,27 @@ def back_calc(ip_to_calc, threads_to_split):
         if ip_to_calc[0] > 255:
             list_of_ip_calculated.append(
                 str(ip_to_calc[0]) + '.' + str(ip_to_calc[1]) + '.' + str(ip_to_calc[2]) + '.' + str(ip_to_calc[3]))
-            return ip_to_calc, list_of_ip_calculated
-        if i == threads_to_split:
+            start_thread(list_of_ip_calculated)
+            return ip_to_calc
+        if i == num_of_ip_for_thread:
             list_of_ip_calculated.append(
                 str(ip_to_calc[0]) + '.' + str(ip_to_calc[1]) + '.' + str(ip_to_calc[2]) + '.' + str(ip_to_calc[3]))
-            return ip_to_calc, list_of_ip_calculated
+            start_thread(list_of_ip_calculated)
+            return ip_to_calc
         list_of_ip_calculated.append(
             str(ip_to_calc[0]) + '.' + str(ip_to_calc[1]) + '.' + str(ip_to_calc[2]) + '.' + str(ip_to_calc[3]))
-    return ip_to_calc, list_of_ip_calculated
+    if len(list_of_ip_calculated) < 1:
+        return ip_to_calc
+    start_thread(list_of_ip_calculated)
+    return ip_to_calc
+
+
+def start_thread(ip_list):
+    thread = threading.Thread(target=do_scan, args=ip_list)
+    thread.start()
 
 
 def get_header(ip_address):
-    print('\rCanning {}'.format(ip_address), end="")
     poxing = httplib2.Http(timeout=1)
     if proxy == 1:
         poxing = httplib2.Http(proxy_info=httplib2.ProxyInfo(httplib2.socks.PROXY_TYPE_HTTP, proxy_ip, port),
@@ -49,14 +61,20 @@ def get_header(ip_address):
     http_interface = poxing
     try:
         response, content = http_interface.request(ip_address, method="HEAD")
-        print("\r\n[i] Response status: {} - {} for {}".format(response.status, response.reason, ip_address), end="\n")
+        print("\r[i] Response status: {} - {} for {}".format(response.status, response.reason, ip_address))
     except httplib2.ServerNotFoundError:
-        print('\rUnable to resolve the host {}.'.format(ip_address), end="")
+        pass
+        # print('\rUnable to resolve the host {}.'.format(ip_address), end="")
     except httplib2.socket.error:
-        print("\r[i] Response status: Error - Unreachable for {} ".format(ip_address), end="")
+        pass
+        # print("\r[i] Response status: Error - Unreachable for {} ".format(ip_address), end="")
+    except httplib2.RedirectLimit:
+        print("\r[i] Response status: redirection_limit - Too many redirects for {} ".format(ip_address))
+    except httplib2.MalformedHeader:
+        print("\r[i] Response status: UNKNOWN Header - WWW-Authenticate for {} ".format(ip_address))
     except httplib2.socks.HTTPError as e:
         if 'Forbidden' in str(e.args):
-            print("\r\n[i] Response status: Error - Forbidden for {} ".format(ip_address), end="\n")
+            print("\r[i] Response status: Error - Forbidden for {} ".format(ip_address))
         else:
             print(e.args)
     # except:
@@ -68,28 +86,29 @@ def calculate_thread(ip_to_split, threads_to_split):
     # 1.1.1.1-2.1.1.1 = (2-1)*(255^3)+(1-1)*(255^2)+(1-1)*(255) + 1-1
     # 2-1 = 1 * 255 * 255  * 255 =
     # ip_to_split = [1, 1, 1, 1, 2, 1, 1, 1]
-    #       0, 1, 2, 3, 4, 5, 6, 7
+    #                0, 1, 2, 3, 4, 5, 6, 7
     total_num_of_ips = (ip_to_split[4] - ip_to_split[0]) * (255 ** 3) + \
                        (ip_to_split[5] - ip_to_split[1]) * (255 ** 2) + \
                        (ip_to_split[6] - ip_to_split[2]) * 255 + \
                        (ip_to_split[7] - ip_to_split[3])
     print('Total number of IP to Scan', total_num_of_ips)
     num_of_ip_for_a_thread = int(total_num_of_ips / threads_to_split)
-    ip_left = total_num_of_ips - float(num_of_ip_for_a_thread * threads_to_split)
-    print(ip_left)
-    while total_num_of_ips - float(num_of_ip_for_a_thread * threads_to_split) > 0:
+    while total_num_of_ips - float(num_of_ip_for_a_thread * threads_to_split) > threads_to_split:
         num_of_ip_for_a_thread += 1
     print('There will be {} IPs scanned for thread'.format(num_of_ip_for_a_thread + 1))
     return num_of_ip_for_a_thread, total_num_of_ips
 
 
 def do_scan(*args):
-    # print(len(args))
     if (len(args)) == 0:
         return
     for ip_to_scan in args:
         address = 'http://' + ip_to_scan
         get_header(address)
+        # print(address)
+
+
+# get_header(address)
 
 
 def first():
@@ -166,13 +185,11 @@ def get_info():
     proxy = int(input("Enter Option (0 or 1): "))
     print(" ")
     print("_______________________________________________")
-    print("_______________________________________________")
     print(" ")
     proxy_ip = 0
     port = 0
     if proxy == 1:
         proxy_ip = input("Enter Proxy IP:Port (*.*.*.*:****): ")
-        print("_______________________________________________")
         print("_______________________________________________")
         print(" ")
         helper = proxy_ip.split(":")
@@ -185,12 +202,12 @@ first()
 ip, threads = get_info()
 
 start = time()
-# #     0, 1, 2, 3,|4, 5, 6, 7
-# ip = [1, 1, 1, 1, 2, 1, 1, 1]
-# threads = 20000
+# #   0, 1, 2, 3,|4, 5, 6, 7
 
 print('Scanning IP Addresses form {}.{}.{}.{} to {}.{}.{}.{}'.format(ip[0], ip[1], ip[2], ip[3],
                                                                      ip[4], ip[5], ip[6], ip[7]))
+ip_range = '{}.{}.{}.{} to {}.{}.{}.{}'.format(ip[0], ip[1], ip[2], ip[3],
+                                               ip[4], ip[5], ip[6], ip[7])
 print("_______________________________________________")
 print(" ")
 print("Using {} Threads".format(threads))
@@ -199,18 +216,39 @@ print(" ")
 if proxy == 1:
     print("Using Proxy {}:{}".format(proxy_ip, port))
 print(" ")
+
 num_of_ip_for_thread, total_num = calculate_thread(ip, threads)
 
-for ips in range(threads):
-    ip, list_of_ip = back_calc(ip, num_of_ip_for_thread)
-    if len(list_of_ip) == 0:
-        break
-    thread = threading.Thread(target=do_scan, args=list_of_ip)
-    thread.start()
+print("_______________________________________________")
+
+while not finished:
+    ip = back_calc(ip)
 
 while threading.active_count() > 1:
-    print('\rThere are {} threads active'.format(threading.active_count()), end='')
-    sleep(5)
+    print('\rThere are {} threads active'.format(threading.active_count()), end="")
+    print('\rScanning \\', end="")
+    sleep(0.3)
+    print('\rScanning |', end="")
+    sleep(0.3)
+    print('\rScanning /', end="")
+    sleep(0.3)
+    print('\rScanning -', end="")
+    sleep(0.3)
+
+
 end = time()
 took = end - start
-print('\r\nIt took {:2f}s To Scan {} IP Addresses'.format(took, total_num))
+print('\r\nIt took {:.2f}s To Scan {} IP Addresses'.format(took, total_num))
+print()
+print('Scanned IP Addresses form ' + ip_range)
+
+print("\r_______________________________________________")
+
+# Recommended Threads To run on:
+#          Range                  Threads to use           Time To Run      Text output size
+#     0.0.0.0 - 0.1.0.0              [450-800]                [170s]              [.MB]
+#     0.0.0.0 - 0.5.0.0               [2000]                 [233.47s]           [.MB]
+#     0.0.0.0 - 1.0.0.0           [40000-70000]                 []
+#     0.0.0.0 - 5.0.0.0           [200000-400000]               []
+#     0.0.0.0 - 10.0.0.0          [300000-500000]               []
+#     0.0.0.0 - 100.0.0.0        [ NOT TESTED YET]              []
