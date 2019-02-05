@@ -40,7 +40,7 @@ python3 ip.py
 __Windows__
 
 If you dont want to use python use a build pachkage and just run it
-* [Download SIPHpy prebuild release for windows](https://github.com/clirimfurriku/SIPHpy/releases/download/0.2/IP.exe)
+* [Download SIPHpy prebuild release for windows](https://github.com/clirimfurriku/SIPHpy/releases/)
 
 Or if you want to do it yourself useng python:
 Download Python 3.* and add to path
