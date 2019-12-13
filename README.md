@@ -16,7 +16,7 @@ __Termux (Android)__
 
 Install command
 ```
-pkg install wget && wget https://raw.githubusercontent.com/clirimfurriku/SIPHpy/master/install.sh && bash install.sh
+pkg install -y wget && wget https://raw.githubusercontent.com/clirimfurriku/SIPHpy/master/install.sh && bash install.sh
 ```
 And run using 
 ```
