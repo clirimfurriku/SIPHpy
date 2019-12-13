@@ -10,7 +10,7 @@ TIMEOUT = 40
 VERBOSE = False
 
 
-class IPAddress:
+class Network:
     def __init__(self, a=1, b=1, c=1, d=1):
         """
         192.168.0.100
@@ -25,6 +25,10 @@ class IPAddress:
         self.b = int(b)
         self.c = int(c)
         self.d = int(d)
+        self.start_a = int(a)
+        self.start_b = int(b)
+        self.start_c = int(c)
+        self.start_d = int(d)
         self.end_a = 255
         self.end_b = 255
         self.end_c = 255
@@ -36,8 +40,42 @@ class IPAddress:
         self.end_c = int(end_c)
         self.end_d = int(end_d)
 
-    def set_subnet(self, subnet):
-        return 'Not implemented'
+    def set_subnet(self, subnet_mask):
+        """
+        :param subnet_mask: Number of network bits, type: int
+        """
+        subnet_mask = int(subnet_mask)
+        sub_a = ''
+        sub_b = ''
+        sub_c = ''
+        sub_d = ''
+        byte = 0
+        while byte < 32:
+            if 0 <= byte <= 7:
+                if byte < subnet_mask:
+                    sub_a += '0'
+                else:
+                    sub_a += '1'
+            elif 8 <= byte <= 15:
+                if byte < subnet_mask:
+                    sub_b += '0'
+                else:
+                    sub_b += '1'
+            elif 16 <= byte <= 23:
+                if byte < subnet_mask:
+                    sub_c += '0'
+                else:
+                    sub_c += '1'
+            elif 24 <= byte <= 31:
+                if byte < subnet_mask:
+                    sub_d += '0'
+                else:
+                    sub_d += '1'
+            byte += 1
+        self.end_a = int(sub_a, 2) | self.start_a
+        self.end_b = int(sub_b, 2) | self.start_b
+        self.end_c = int(sub_c, 2) | self.start_c
+        self.end_d = int(sub_d, 2) | self.start_d
 
     def __iter__(self):
         return self
@@ -72,11 +110,20 @@ class IPAddress:
         return f'{self.a}.{self.b}.{self.c}.{self.d}'
 
     def __repr__(self):
-        return f'<IP_Address Start: {self.a}.{self.b}.{self.c}.{self.d}  ' \
+        return f'<Network Start: {self.start_a}.{self.start_b}.{self.start_c}.{self.start_d}  ' \
                f'End: {self.end_a}.{self.end_b}.{self.end_c}.{self.end_d}>'
 
     def end_ip(self):
         return f'{self.end_a}.{self.end_b}.{self.end_c}.{self.end_d}'
+
+    def start_ip(self):
+        return f'{self.start_a}.{self.start_b}.{self.start_c}.{self.start_d}'
+
+    def reset(self):
+        self.a = self.start_a
+        self.b = self.start_b
+        self.c = self.start_c
+        self.d = self.start_d
 
 
 def scan(ip_host):
@@ -129,13 +176,18 @@ def first():
 
 
 first()
-print('IP Example 192.168.1.1')
+print('IP Example: 192.168.1.1/24')
 ip_start = input('Please Enter start IP: ').split('.')
-ip_end = input('Please Enter end IP: ').split('.')
-
-ip = IPAddress(*ip_start)
-if len(ip_end) == 4:
+if len(ip_start[-1].split('/')) == 2:
+    subnet = ip_start[-1].split('/')[1]
+    ip_start[-1] = ip_start[-1].split('/')[0]
+    ip = Network(*ip_start)
+    ip.set_subnet(subnet)
+else:
+    ip_end = input('Please Enter end IP: ').split('.')
+    ip = Network(*ip_start)
     ip.set_end(*ip_end)
+
 
 responses = []
 start = time()
@@ -143,13 +195,15 @@ with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) * 50) as executor:
     for i in executor.map(scan, ip):
         if i:
             responses.append(i)
-            print(i)
+            print(f'\n{i}')
 
 end = time()
 took = end - start
 
-print(f'It took {took} to scan IPs from {ip} to {ip.end_ip}')
+print(f'It took {took} to scan IPs from {ip.start_ip()} to {ip.end_ip()}')
 
+print('\nSaving results...')
 with open('results.txt', 'w') as file:
     for i in responses:
         file.write(str(i))
+    print(f'Results saved as results.txt at location {os.getcwd()}')
