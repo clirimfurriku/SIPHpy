@@ -3,15 +3,10 @@
 
 __Scan IP adress Headers to find alive servers__
 
-This App is designed to scan for alive hosts on mobile operators with no active data plan. It can be used to find hosts that allow you to connect to the internet without a data plan (free). You should Google a bit if you don't know how to use alive Hosts to create payloads and connect to internet.
+This App is designed to scan for alive hosts that respond through proxy. It can be used to find hosts that allow you to connect to the internet even when you are not supposed to ;) . If you don't know what this is about maybe Google a bit and you will find the answer.
 
-This is the fastest App out there.
-
-NEW UPDATE
---------------
-Update of 04/02/2019 i rebuild the app from beginning.
-Supports up to 100000 threads (If your network bandwith supports it) and time to finish is much lower
-To note is that now results wont be saved to a file :(  they will just ptint on screen, however this was the best way to not use RAM which was the cause of crashing on old versions
+This is the fastest App out there for this job.
+However, brute-forcing every IP may not be the best option. Maybe use it in a smarter way.
 
 
 How to install
@@ -23,7 +18,10 @@ Install command
 ```
 pkg install wget && wget https://raw.githubusercontent.com/clirimfurriku/SIPHpy/master/install.sh && bash install.sh
 ```
-On Android does not support Python Pool so multithreading is not good, and can crash your phone if you scan too many IPs
+And run using 
+```
+siphpy
+```
 
 __Linux__ (Tested on Ubuntu,Kali)
 
@@ -46,11 +44,8 @@ Or if you want to do it yourself useng python:
 Download Python 3.* and add to path
 Download [ip.py](https://raw.githubusercontent.com/clirimfurriku/SIPHpy/master/ip.py)
 Open CMD and go to the downloaded file directory
-Than run commands
-```
-python -m pip install httplib2
-```
-And run using 
+
+And run using command
 ```
 python ip.py
 ```
