@@ -1,11 +1,13 @@
 # !/usr/bin/env python3
 import urllib.error
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from time import time
 import os
 
 PROXY = 'http://1.1.1.1:80'
 TIMEOUT = 40
+VERBOSE = False
 
 
 class IPAddress:
@@ -79,7 +81,6 @@ class IPAddress:
 
 def scan(ip_host):
     print(f'\r{ip_host}', end='')
-    import urllib.request
 
     proxy_support = urllib.request.ProxyHandler({'http': PROXY,
                                                  'https': PROXY})
@@ -92,7 +93,8 @@ def scan(ip_host):
     except urllib.error.HTTPError as e:
         return [ip_host, e]
     except Exception as e:
-        print(e)
+        if VERBOSE:
+            print(e)
         return
 
 
