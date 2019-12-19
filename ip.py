@@ -42,7 +42,7 @@ class Network:
 
     def set_subnet(self, subnet_mask):
         """
-        :param subnet_mask: Number of network bits, type: int
+        :param subnet_mask: Number of network bits (0-31), type: int
         """
         subnet_mask = int(subnet_mask)
         sub_a = ''
@@ -113,9 +113,15 @@ class Network:
         return f'<Network Start: {self.start_a}.{self.start_b}.{self.start_c}.{self.start_d}  ' \
                f'End: {self.end_a}.{self.end_b}.{self.end_c}.{self.end_d}>'
 
+    def __len__(self):
+        return (self.end_a - self.start_a or 1) * (self.end_b - self.start_b or 1) * \
+               (self.end_c - self.start_c or 1) * (self.end_d - self.start_b or 1)
+
+    @property
     def end_ip(self):
         return f'{self.end_a}.{self.end_b}.{self.end_c}.{self.end_d}'
 
+    @property
     def start_ip(self):
         return f'{self.start_a}.{self.start_b}.{self.start_c}.{self.start_d}'
 
@@ -184,23 +190,24 @@ if len(ip_start[-1].split('/')) == 2:
     ip = Network(*ip_start)
     ip.set_subnet(subnet)
 else:
-    ip_end = input('Please Enter end IP: ').split('.')
+    ip_end = input('Please Enter last IP of the network: ').split('.')
     ip = Network(*ip_start)
     ip.set_end(*ip_end)
 
 
+print(f'Total number of IPs on the network is {len(ip)}')
 responses = []
 start = time()
 with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) * 50) as executor:
     for i in executor.map(scan, ip):
         if i:
             responses.append(i)
-            print(f'\n{i}')
+            print(f'{i}')
 
 end = time()
 took = end - start
 
-print(f'It took {took} to scan IPs from {ip.start_ip()} to {ip.end_ip()}')
+print(f'It took {took} to scan IPs from {ip.start_ip} to {ip.end_ip}')
 
 print('\nSaving results...')
 with open('results.txt', 'w') as file:
