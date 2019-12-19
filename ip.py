@@ -115,7 +115,7 @@ class Network:
 
     def __len__(self):
         return (self.end_a - self.start_a or 1) * (self.end_b - self.start_b or 1) * \
-               (self.end_c - self.start_c or 1) * (self.end_d - self.start_b or 1)
+               (self.end_c - self.start_c or 1) * (self.end_d - self.start_d or 1)
 
     @property
     def end_ip(self):
