@@ -4,6 +4,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from time import time
 import os
+from tqdm import tqdm
 
 PROXY = 'http://1.1.1.1:80'
 TIMEOUT = 40
@@ -133,21 +134,24 @@ class Network:
 
 
 def scan(ip_host):
-    print(f'\r{ip_host}', end='')
+    # print(f'\r{ip_host}', end='')
 
     proxy_support = urllib.request.ProxyHandler({'http': PROXY,
                                                  'https': PROXY})
     opener = urllib.request.build_opener(proxy_support)
     urllib.request.install_opener(opener)
-
+    global bar
     try:
         response = urllib.request.urlopen('http://' + ip_host, timeout=TIMEOUT)
+        bar.update(1)
         return [ip_host, response]
     except urllib.error.HTTPError as e:
+        bar.update(1)
         return [ip_host, e]
     except Exception as e:
         if VERBOSE:
             print(e)
+        bar.update(1)
         return
 
 
@@ -197,6 +201,7 @@ else:
 
 print(f'Total number of IPs on the network is {len(ip)}')
 responses = []
+bar = tqdm(total=len(ip))
 start = time()
 with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) * 50) as executor:
     for i in executor.map(scan, ip):
@@ -206,8 +211,8 @@ with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) * 50) as executor:
 
 end = time()
 took = end - start
-
-print(f'It took {took} to scan IPs from {ip.start_ip} to {ip.end_ip}')
+bar.close()
+print(f'It took {took}s to scan IPs from {ip.start_ip} to {ip.end_ip}')
 
 print('\nSaving results...')
 with open('results.txt', 'w') as file:
