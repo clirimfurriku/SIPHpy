@@ -4,6 +4,7 @@ echo installing plugins
 termux-setup-storage
 pkg install -y wget && pkg install -y python
 pip install tqdm
+pip install ping3
 echo _____________________________________
 echo installing commands
 echo ______________________________________
