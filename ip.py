@@ -5,10 +5,12 @@ from concurrent.futures import ThreadPoolExecutor
 from time import time
 import os
 from tqdm import tqdm
+from ping3 import ping
 
-PROXY = 'http://1.1.1.1:80'
 TIMEOUT = 40
-VERBOSE = False
+VERBOSE = True
+DEBUG = False
+PROXY = 'http://1.1.1.1:80'
 
 
 class Network:
@@ -141,16 +143,20 @@ def scan(ip_host):
     opener = urllib.request.build_opener(proxy_support)
     urllib.request.install_opener(opener)
     global bar
-    try:
-        response = urllib.request.urlopen('http://' + ip_host, timeout=TIMEOUT)
-        bar.update(1)
-        return [ip_host, response]
-    except urllib.error.HTTPError as e:
-        bar.update(1)
-        return [ip_host, e]
-    except Exception as e:
-        if VERBOSE:
-            print(e)
+    if ping(ip_host, timeout=10):
+        try:
+            response = urllib.request.urlopen('http://' + ip_host, timeout=TIMEOUT)
+            bar.update(1)
+            return [ip_host, response.getcode()]
+        except urllib.error.HTTPError as e:
+            bar.update(1)
+            return [ip_host, e]
+        except Exception as e:
+            if DEBUG:
+                print(e)
+            bar.update(1)
+            return [ip_host, 'PING-Reply']
+    else:
         bar.update(1)
         return
 
@@ -203,11 +209,12 @@ print(f'Total number of IPs on the network is {len(ip)}')
 responses = []
 bar = tqdm(total=len(ip))
 start = time()
-with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) * 50) as executor:
+with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) * 70) as executor:
     for i in executor.map(scan, ip):
         if i:
             responses.append(i)
-            print(f'{i}')
+            if VERBOSE:
+                print(f'{i}')
 
 end = time()
 took = end - start
@@ -217,5 +224,5 @@ print(f'It took {took}s to scan IPs from {ip.start_ip} to {ip.end_ip}')
 print('\nSaving results...')
 with open('results.txt', 'w') as file:
     for i in responses:
-        file.write(str(i))
+        file.write(str(i) + '\n')
     print(f'Results saved as results.txt at location {os.getcwd()}')
