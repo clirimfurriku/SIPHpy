@@ -1,0 +1,5 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
+cd /data/data/com.termux/files/home/storage/downloads/
+
+python -O /data/data/com.termux/files/usr/bin/ip.py
